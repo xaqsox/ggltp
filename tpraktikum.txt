@@ -1,42 +1,33 @@
-Berikut adalah kode implementasi dari class SayaTubeVideo dengan konstruktor, method IncreasePlayCount, dan method PrintVideoDetails dalam bahasa C# sesuai dengan deskripsi yang telah diberikan:
-
-csharp
-Copy code
 using System;
+using System.IO;
+using Newtonsoft.Json;
 
-public class SayaTubeVideo
+public class KuliahMahasiswa
 {
-    private int id;
-    private string title;
-    private int playCount;
-    
-    public SayaTubeVideo(string title)
+    private string jsonFile;
+
+    public KuliahMahasiswa(string jsonFile)
     {
-        Random random = new Random();
-        id = random.Next(10000, 100000);
-        this.title = title;
-        playCount = 0;
+        this.jsonFile = jsonFile;
     }
-    
-    public void IncreasePlayCount(int count)
+
+    public void ReadJSON()
     {
-        playCount += count;
-    }
-    
-    public void PrintVideoDetails()
-    {
-        Console.WriteLine("Video Details");
-        Console.WriteLine("ID: " + id);
-        Console.WriteLine("Title: " + title);
-        Console.WriteLine("Play Count: " + playCount);
+        string json = File.ReadAllText(jsonFile);
+        dynamic data = JsonConvert.DeserializeObject(json);
+
+        Console.WriteLine("Daftar mata kuliah yang diambil:");
+        int i = 1;
+        foreach (var mk in data.mata_kuliah)
+        {
+            string kode_mk = mk.kode_mk;
+            string nama_mk = mk.nama_mk;
+            Console.WriteLine($"MK {i} {kode_mk} - {nama_mk}");
+            i++;
+        }
     }
 }
-Untuk memanggil method PrintVideoDetails pada fungsi utama dan membuat video baru dengan judul "Tutorial Design By Contract - [NAMA_PRAKTIKAN]", kita dapat menggunakan kode berikut:
 
-csharp
-Copy code
-SayaTubeVideo video = new SayaTubeVideo("Tutorial Design By Contract - [NAMA_PRAKTIKAN]");
-video.PrintVideoDetails();
-Output yang dihasilkan dari kode tersebut adalah sebagai berikut:
-
-less
+// Contoh penggunaan
+KuliahMahasiswa mahasiswa1 = new KuliahMahasiswa("data.json");
+mahasiswa1.ReadJSON();
