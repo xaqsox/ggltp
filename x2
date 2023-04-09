@@ -1,0 +1,103 @@
+using System;
+using System.IO;
+using Newtonsoft.Json;
+
+class CovidConfig
+{
+    public string SatuanSuhu { get; set; }
+    public int BatasHariDemam { get; set; }
+    public string PesanDitolak { get; set; }
+    public string PesanDiterima { get; set; }
+
+    // Constructor untuk nilai default
+    public CovidConfig()
+    {
+        SatuanSuhu = "celcius";
+        BatasHariDemam = 14;
+        PesanDitolak = "Anda tidak diperbolehkan masuk ke dalam gedung ini";
+        PesanDiterima = "Anda dipersilahkan untuk masuk ke dalam gedung ini";
+    }
+
+    // Method untuk membaca nilai konfigurasi dari file
+    public static CovidConfig BacaConfig(string path)
+    {
+        CovidConfig config = new CovidConfig();
+
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            config = JsonConvert.DeserializeObject<CovidConfig>(json);
+        }
+
+        return config;
+    }
+
+    // Method untuk menuliskan nilai konfigurasi ke file
+    public void TulisConfig(string path)
+    {
+        string json = JsonConvert.SerializeObject(this);
+        File.WriteAllText(path, json);
+    }
+
+    // Method untuk mengubah satuan suhu
+    public void UbahSatuan()
+    {
+        if (SatuanSuhu == "celcius")
+        {
+            SatuanSuhu = "fahrenheit";
+        }
+        else
+        {
+            SatuanSuhu = "celcius";
+        }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Membaca nilai konfigurasi dari file
+        CovidConfig config = CovidConfig.BacaConfig("covid_config.json");
+
+        // Menampilkan pertanyaan dan menerima input dari user
+        Console.Write($"Berapa suhu badan anda saat ini? Dalam nilai {config.SatuanSuhu}: ");
+        double suhu = Convert.ToDouble(Console.ReadLine());
+
+        Console.Write("Berapa hari yang lalu (perkiraan) anda terakhir memiliki gejala deman? ");
+        int hariDemam = Convert.ToInt32(Console.ReadLine());
+
+        // Menghitung range nilai suhu sesuai dengan satuan suhu pada konfigurasi
+        double batasBawah, batasAtas;
+        if (config.SatuanSuhu == "celcius")
+        {
+            batasBawah = 36.5;
+            batasAtas = 37.5;
+        }
+        else
+        {
+            batasBawah = 97.7;
+            batasAtas = 99.5;
+        }
+
+        // Memeriksa apakah input suhu dan hari demam memenuhi kondisi
+        if (suhu >= batasBawah && suhu <= batasAtas && hariDemam < config.BatasHariDemam)
+        {
+            Console.WriteLine(config.PesanDiterima);
+        }
+        else
+        {
+            Console.WriteLine(config.PesanDitolak);
+        }
+
+        // Mengubah satuan suhu dan menulis ulang konfigurasi ke file
+        config.UbahSatuan();
+        config.TulisConfig("covid_config.json");
+    }
+}
+Pada implementasi di atas, class CovidConfig digunakan untuk mengelola nilai konfigurasi. Terdapat method BacaConfig untuk membaca nilai konfig
+
+
+
+
+
