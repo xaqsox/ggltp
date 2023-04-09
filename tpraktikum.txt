@@ -2,32 +2,89 @@ using System;
 using System.IO;
 using Newtonsoft.Json;
 
-public class KuliahMahasiswa
+class CovidConfig
 {
-    private string jsonFile;
+    public string SatuanSuhu { get; set; }
+    public int BatasHariDeman { get; set; }
+    public string PesanDitolak { get; set; }
+    public string PesanDiterima { get; set; }
 
-    public KuliahMahasiswa(string jsonFile)
+    // Constructor dengan nilai default
+    public CovidConfig()
     {
-        this.jsonFile = jsonFile;
+        SatuanSuhu = "celcius";
+        BatasHariDeman = 14;
+        PesanDitolak = "Anda tidak diperbolehkan masuk ke dalam gedung ini";
+        PesanDiterima = "Anda dipersilahkan untuk masuk ke dalam gedung ini";
     }
 
-    public void ReadJSON()
+    // Method untuk memuat nilai konfigurasi dari file JSON
+    public void LoadConfig()
     {
-        string json = File.ReadAllText(jsonFile);
-        dynamic data = JsonConvert.DeserializeObject(json);
-
-        Console.WriteLine("Daftar mata kuliah yang diambil:");
-        int i = 1;
-        foreach (var mk in data.mata_kuliah)
+        string path = "covid_config.json";
+        if (File.Exists(path))
         {
-            string kode_mk = mk.kode_mk;
-            string nama_mk = mk.nama_mk;
-            Console.WriteLine($"MK {i} {kode_mk} - {nama_mk}");
-            i++;
+            string json = File.ReadAllText(path);
+            JsonConvert.PopulateObject(json, this);
         }
+    }
+
+    // Method untuk menyimpan nilai konfigurasi ke file JSON
+    public void SaveConfig()
+    {
+        string path = "covid_config.json";
+        string json = JsonConvert.SerializeObject(this, Formatting.Indented);
+        File.WriteAllText(path, json);
+    }
+
+    // Method untuk mengubah satuan suhu antara "celcius" dan "fahrenheit"
+    public void UbahSatuan()
+    {
+        SatuanSuhu = (SatuanSuhu == "celcius") ? "fahrenheit" : "celcius";
     }
 }
 
-// Contoh penggunaan
-KuliahMahasiswa mahasiswa1 = new KuliahMahasiswa("data.json");
-mahasiswa1.ReadJSON();
+class Program
+{
+    static void Main(string[] args)
+    {
+        CovidConfig config = new CovidConfig();
+        config.LoadConfig();
+
+        Console.WriteLine("Berapa suhu badan anda saat ini? Dalam nilai " + config.SatuanSuhu + ":");
+        double suhu = double.Parse(Console.ReadLine());
+
+        if (config.SatuanSuhu == "celcius")
+        {
+            if (suhu < 36.5 || suhu > 37.5)
+            {
+                Console.WriteLine(config.PesanDitolak);
+                return;
+            }
+        }
+        else if (config.SatuanSuhu == "fahrenheit")
+        {
+            if (suhu < 97.7 || suhu > 99.5)
+            {
+                Console.WriteLine(config.PesanDitolak);
+                return;
+            }
+        }
+
+        Console.WriteLine("Berapa hari yang lalu (perkiraan) anda terakhir memiliki gejala demam?");
+        int hari = int.Parse(Console.ReadLine());
+
+        if (hari >= config.BatasHariDeman)
+        {
+            Console.WriteLine(config.PesanDiterima);
+        }
+        else
+        {
+            Console.WriteLine(config.PesanDitolak);
+        }
+
+        // Panggil method UbahSatuan untuk mengganti satuan suhu
+        config.UbahSatuan();
+        config.SaveConfig();
+    }
+}
